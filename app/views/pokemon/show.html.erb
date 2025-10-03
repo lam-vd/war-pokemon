@@ -1,0 +1,249 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <!-- Back Button -->
+      <div class="mb-4">
+        <%= link_to root_path, class: "btn btn-outline-light mt-4" do %>
+          <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+        <% end %>
+      </div>
+
+      <!-- Pokemon Card -->
+      <div class="pokemon-card">
+        <div class="row">
+          <!-- Left Column - Image and Basic Info -->
+          <div class="col-lg-5">
+            <div class="p-4 text-center">
+              <!-- Pokemon Images -->
+              <div class="mb-4">
+                <% if @pokemon[:sprites][:official_artwork] %>
+                  <%= image_tag @pokemon[:sprites][:official_artwork], 
+                        alt: @pokemon[:name],
+                        class: "pokemon-image img-fluid mb-3",
+                        style: "max-width: 250px;" %>
+                <% elsif @pokemon[:sprites][:front_default] %>
+                  <%= image_tag @pokemon[:sprites][:front_default], 
+                        alt: @pokemon[:name],
+                        class: "pokemon-image img-fluid mb-3" %>
+                <% else %>
+                  <div class="bg-light rounded p-4 mb-3">
+                    <i class="fas fa-image fa-4x text-muted"></i>
+                    <p class="mt-2 text-muted">No image available</p>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Name and ID -->
+              <h1 class="fw-bold mb-2"><%= @pokemon[:name] %></h1>
+              <h3 class="text-muted mb-4">#<%= @pokemon[:id] %></h3>
+
+              <!-- Types -->
+              <div class="mb-4">
+                <% @pokemon[:types].each do |type| %>
+                  <span class="pokemon-type" style="background-color: <%= type[:color] %>">
+                    <%= type[:name] %>
+                  </span>
+                <% end %>
+              </div>
+
+              <!-- Basic Measurements -->
+              <div class="row text-center mb-4">
+                <div class="col-6">
+                  <div class="bg-light rounded p-3">
+                    <i class="fas fa-arrows-alt-v text-primary fa-2x mb-2"></i>
+                    <h5 class="mb-0"><%= (@pokemon[:height] / 10.0).round(1) %> m</h5>
+                    <small class="text-muted">Chiều cao</small>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="bg-light rounded p-3">
+                    <i class="fas fa-weight text-warning fa-2x mb-2"></i>
+                    <h5 class="mb-0"><%= (@pokemon[:weight] / 10.0).round(1) %> kg</h5>
+                    <small class="text-muted">Cân nặng</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="d-grid gap-2">
+                <%= link_to new_battle_path(pokemon_id: @pokemon[:id]), class: "btn btn-battle" do %>
+                  <i class="fas fa-sword me-2"></i>Tham gia chiến đấu!
+                <% end %>
+                
+                <button class="btn btn-pokemon" onclick="sharePokemons('<%= @pokemon[:name] %>', '<%= @pokemon[:id] %>')">
+                  <i class="fas fa-share me-2"></i>Chia sẻ Pokémon
+                </button>
+                <hr>
+                <%= link_to random_pokemon_index_path, class: "btn btn-outline-primary" do %>
+                  <i class="fas fa-random me-2"></i>Pokémon ngẫu nhiên khác
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column - Detailed Info -->
+          <div class="col-lg-7">
+            <div class="p-4">
+              
+              <!-- Description -->
+              <% if @pokemon[:description] %>
+                <div class="mb-4">
+                  <h4><i class="fas fa-book-open me-2 text-primary"></i>Mô tả</h4>
+                  <p class="lead"><%= @pokemon[:description] %></p>
+                </div>
+              <% end %>
+
+              <!-- Stats -->
+              <% if @pokemon[:stats] && @pokemon[:stats].any? %>
+                <div class="mb-4">
+                  <h4><i class="fas fa-chart-bar me-2 text-success"></i>Chỉ số cơ bản</h4>
+                  <div class="pokemon-stats">
+                    <% @pokemon[:stats].each do |stat_name, stat_value| %>
+                      <div class="row mb-3 align-items-center">
+                        <div class="col-4">
+                          <strong><%= stat_name %>:</strong>
+                        </div>
+                        <div class="col-6">
+                          <div class="stat-bar">
+                            <div class="stat-fill" style="width: <%= [stat_value.to_f / (stat_name == 'Total' ? 800 : 200) * 100, 100].min %>%"></div>
+                          </div>
+                        </div>
+                        <div class="col-2 text-end">
+                          <span class="fw-bold"><%= stat_value %></span>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+
+              <!-- Abilities -->
+              <% if @pokemon[:abilities] && @pokemon[:abilities].any? %>
+                <div class="mb-4">
+                  <h4><i class="fas fa-magic me-2 text-info"></i>Khả năng</h4>
+                  <div class="row">
+                    <% @pokemon[:abilities].each do |ability| %>
+                      <div class="col-md-6 mb-2">
+                        <span class="badge bg-info me-2">
+                          <%= ability.is_a?(Hash) ? ability[:name] : ability %>
+                        </span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+
+              <!-- Additional Info -->
+              <div class="row mb-4">
+                <% if @pokemon[:generation] %>
+                  <div class="col-md-6 mb-3">
+                    <div class="bg-light rounded p-3 text-center">
+                      <i class="fas fa-layer-group text-secondary fa-2x mb-2"></i>
+                      <h6 class="mb-0"><%= @pokemon[:generation] %></h6>
+                      <small class="text-muted">Thế hệ</small>
+                    </div>
+                  </div>
+                <% end %>
+
+                <% if @pokemon[:base_experience] %>
+                  <div class="col-md-6 mb-3">
+                    <div class="bg-light rounded p-3 text-center">
+                      <i class="fas fa-star text-warning fa-2x mb-2"></i>
+                      <h6 class="mb-0"><%= @pokemon[:base_experience] %> EXP</h6>
+                      <small class="text-muted">Kinh nghiệm cơ sở</small>
+                    </div>
+                  </div>
+                <% end %>
+
+                <% if @pokemon[:habitat] %>
+                  <div class="col-md-6 mb-3">
+                    <div class="bg-light rounded p-3 text-center">
+                      <i class="fas fa-tree text-success fa-2x mb-2"></i>
+                      <h6 class="mb-0"><%= @pokemon[:habitat] %></h6>
+                      <small class="text-muted">Môi trường sống</small>
+                    </div>
+                  </div>
+                <% end %>
+
+                <% if @pokemon[:moves_count] && @pokemon[:moves_count] > 0 %>
+                  <div class="col-md-6 mb-3">
+                    <div class="bg-light rounded p-3 text-center">
+                      <i class="fas fa-fist-raised text-danger fa-2x mb-2"></i>
+                      <h6 class="mb-0"><%= @pokemon[:moves_count] %> chiêu thức</h6>
+                      <small class="text-muted">Tổng số chiêu</small>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Sprite Gallery -->
+              <% if @pokemon[:sprites] && @pokemon[:sprites].values.compact.size > 1 %>
+                <div class="mb-4">
+                  <h4><i class="fas fa-images me-2 text-purple"></i>Thư viện hình ảnh</h4>
+                  <div class="row g-2">
+                    <% @pokemon[:sprites].each do |sprite_type, sprite_url| %>
+                      <% next if sprite_url.blank? %>
+                      <div class="col-4 col-md-3">
+                        <div class="bg-light rounded p-2 text-center">
+                          <%= image_tag sprite_url, 
+                                alt: "#{@pokemon[:name]} #{sprite_type}",
+                                class: "img-fluid",
+                                style: "max-height: 80px;",
+                                onclick: "showLargeImage('#{sprite_url}', '#{@pokemon[:name]} #{sprite_type}')" %>
+                          <small class="d-block text-muted mt-1">
+                            <%= sprite_type.to_s.humanize %>
+                          </small>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Demo Navigation -->
+      <div class="row mt-4">
+        <div class="col-md-3 mb-2">
+          <%= link_to pokemon_path("25"), class: "btn btn-outline-warning w-100" do %>
+            ⚡ Pikachu
+          <% end %>
+        </div>
+        <div class="col-md-3 mb-2">
+          <%= link_to pokemon_path("6"), class: "btn btn-outline-danger w-100" do %>
+            🔥 Charizard
+          <% end %>
+        </div>
+        <div class="col-md-3 mb-2">
+          <%= link_to pokemon_path("1"), class: "btn btn-outline-success w-100" do %>
+            🌱 Bulbasaur
+          <% end %>
+        </div>
+        <div class="col-md-3 mb-2">
+          <%= link_to pokemon_path("150"), class: "btn btn-outline-info w-100" do %>
+            🧠 Mewtwo
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">Pokemon Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
+
