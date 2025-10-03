@@ -1,0 +1,65 @@
+# Rails
+*.rbc
+capybara-*.html
+.rspec
+/log
+/tmp
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/public/system
+/coverage/
+/spec/tmp
+*.orig
+rerun.txt
+pickle-email-*.html
+
+# Rails.root/config/secrets.yml
+/config/secrets.yml
+/config/master.key
+
+# Environment variables
+.env
+.env.*
+
+# Bundler
+/.bundle
+/vendor/bundle
+
+# Node & Yarn
+/node_modules
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Rails assets
+/public/assets
+/public/packs
+/tmp/cache/assets
+
+# Debug files
+.byebug_history
+
+# Spring
+/spring/*.pid
+
+# Storage uploads
+/storage/*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test coverage
+/coverage/
+
+# Logs
+*.log
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key

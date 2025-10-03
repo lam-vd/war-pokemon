@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      MYSQL_DATABASE: war_pokemon_development
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # - docker/mysql/init.sql:/docker-entrypoint/init.sql # Optional: for initialization scripts
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db
+      - DB_PASSWORD=
+      - RAILS_ENV=development
+    depends_on:
+      - db
+      - redis
+    command: bash -c "
+      bundle install &&
+      sleep 30 &&
+      rails db:create db:migrate &&
+      rails server -b 0.0.0.0"
+
+volumes:
+  mysql_data:
