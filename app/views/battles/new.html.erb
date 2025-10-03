@@ -1,0 +1,472 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <!-- Back Button -->
+      <div class="mb-4">
+        <%= link_to pokemon_path(@pokemon[:id]), class: "btn btn-outline-light mt-4" do %>
+          <i class="fas fa-arrow-left me-2"></i>Quay lại <%= @pokemon[:name] %>
+        <% end %>
+      </div>
+
+      <!-- Battle Header -->
+      <div class="text-center mb-5">
+        <h1 class="display-4 text-warning mb-3">
+          <i class="fas fa-fire me-3"></i>Pokemon Battle Arena
+        </h1>
+        <p class="lead text-light">Chuẩn bị cho trận chiến với <%= @pokemon[:name] %>!</p>
+      </div>
+
+      <!-- Battle Setup Card -->
+      <div class="battle-setup-card mb-4">
+        <div class="row align-items-center">
+          <!-- Player Pokemon -->
+          <div class="col-md-5">
+            <div class="text-center p-4">
+              <h3 class="text-primary mb-3">
+                <i class="fas fa-user me-2"></i>Pokemon của bạn
+              </h3>
+              
+              <% if @pokemon[:sprites] && @pokemon[:sprites][:official_artwork] %>
+                <%= image_tag @pokemon[:sprites][:official_artwork], 
+                      alt: @pokemon[:name],
+                      class: "pokemon-battle-image img-fluid mb-3",
+                      style: "max-width: 200px;" %>
+              <% elsif @pokemon[:sprites] && @pokemon[:sprites][:front_default] %>
+                <%= image_tag @pokemon[:sprites][:front_default], 
+                      alt: @pokemon[:name],
+                      class: "pokemon-battle-image img-fluid mb-3" %>
+              <% else %>
+                <div class="pokemon-placeholder mb-3">
+                  <i class="fas fa-image fa-4x text-light"></i>
+                  <p class="mt-2 text-light">No image available</p>
+                </div>
+              <% end %>
+              
+              <h4 class="fw-bold text-warning"><%= @pokemon[:name] %></h4>
+              <p class="text-light">#<%= @pokemon[:id] %></p>
+              
+              <!-- Types -->
+              <% if @pokemon[:types] && @pokemon[:types].any? %>
+                <div class="mb-3">
+                  <% @pokemon[:types].each do |type| %>
+                    <span class="pokemon-type me-1" style="background-color: <%= type[:color] %>">
+                      <%= type[:name] %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+              
+              <!-- Battle Stats Preview -->
+              <% if @pokemon[:stats] && @pokemon[:stats].any? %>
+                <div class="battle-stats-preview">
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <div class="stat-preview">
+                        <i class="fas fa-sword text-danger"></i>
+                        <small class="d-block">ATK</small>
+                        <strong><%= @pokemon[:stats]['Attack'] || 'N/A' %></strong>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="stat-preview">
+                        <i class="fas fa-shield text-primary"></i>
+                        <small class="d-block">DEF</small>
+                        <strong><%= @pokemon[:stats]['Defense'] || 'N/A' %></strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row text-center mt-2">
+                    <div class="col-6">
+                      <div class="stat-preview">
+                        <i class="fas fa-heart text-success"></i>
+                        <small class="d-block">HP</small>
+                        <strong><%= @pokemon[:stats]['HP'] || 'N/A' %></strong>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="stat-preview">
+                        <i class="fas fa-bolt text-warning"></i>
+                        <small class="d-block">SPD</small>
+                        <strong><%= @pokemon[:stats]['Speed'] || 'N/A' %></strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- VS Badge -->
+          <div class="col-md-2 text-center">
+            <div class="vs-badge-large">
+              <i class="fas fa-bolt"></i>
+              VS
+              <i class="fas fa-fire"></i>
+            </div>
+            <p class="text-light mt-3">
+              <i class="fas fa-dice me-2"></i>Đối thủ ngẫu nhiên
+            </p>
+          </div>
+
+          <!-- Opponent Placeholder -->
+          <div class="col-md-5 text-while">
+            <div class="text-center p-4">
+              <h3 class="text-danger mb-3">
+                <i class="fas fa-robot me-2"></i>Đối thủ
+              </h3>
+              
+              <div class="opponent-placeholder mb-3">
+                <i class="fas fa-question fa-5x text-light"></i>
+                <p class="mt-3 text-light">Đối thủ sẽ được chọn ngẫu nhiên</p>
+              </div>
+              
+              <h4 class="fw-bold text-light">??? Pokemon</h4>
+              <p class="text-light">Sẽ được công bố khi bắt đầu trận đấu</p>
+              
+              <div class="text-light">
+                <i class="fas fa-dice me-2"></i>
+                Gen 1 Pokemon (ID: 1-151)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Battle Controls -->
+        <div class="text-center p-4 border-top">
+          <button id="startBattleBtn" class="btn btn-battle btn-lg me-3" onclick="startBattle(<%= @pokemon[:id] %>)">
+            <i class="fas fa-play me-2"></i>Bắt đầu trận chiến!
+          </button>
+          
+          <%= link_to random_pokemon_index_path, class: "btn btn-outline-secondary btn-lg" do %>
+            <i class="fas fa-dice me-2"></i>Đổi Pokemon khác
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Battle Arena (Hidden initially) -->
+      <div id="battleArena" class="battle-arena" style="display: none;">
+        <div class="row">
+          <!-- Battle Field -->
+          <div class="col-lg-8">
+            <div class="battle-field">
+              <div class="battle-header text-center mb-4">
+                <h3 class="text-warning">
+                  <i class="fas fa-swords me-2"></i>Trận Chiến Đang Diễn Ra
+                </h3>
+              </div>
+              
+              <!-- Pokemon Battle Display -->
+              <div class="row battle-pokemon-display mb-4">
+                <div class="col-6 text-center">
+                  <div class="player-battle-area">
+                    <div id="playerPokemonDisplay">
+                      <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="hp-bar-container mt-3">
+                      <div class="hp-label">
+                        <strong id="playerPokemonName"><%= @pokemon[:name] %></strong>
+                      </div>
+                      <div class="hp-bar">
+                        <div id="playerHpBar" class="hp-fill" style="width: 100%;"></div>
+                      </div>
+                      <div class="hp-text">
+                        <span id="playerHpText">100/100</span> HP
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="col-6 text-center">
+                  <div class="opponent-battle-area">
+                    <div id="opponentPokemonDisplay">
+                      <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="hp-bar-container mt-3">
+                      <div class="hp-label">
+                        <strong id="opponentPokemonName">??? Pokemon</strong>
+                      </div>
+                      <div class="hp-bar">
+                        <div id="opponentHpBar" class="hp-fill" style="width: 100%;"></div>
+                      </div>
+                      <div class="hp-text">
+                        <span id="opponentHpText">100/100</span> HP
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Battle Log -->
+          <div class="col-lg-4">
+            <div class="battle-log-container">
+              <h4 class="text-info mb-3">
+                <i class="fas fa-scroll me-2"></i>Nhật ký trận đấu
+              </h4>
+              <div id="battleLog" class="battle-log">
+                <div class="log-entry text-light">
+                  <i class="fas fa-info-circle me-2"></i>Nhấn "Bắt đầu trận chiến" để bắt đầu!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Battle Results (Hidden initially) -->
+        <div id="battleResults" class="battle-results text-center mt-4" style="display: none;">
+          <div class="results-content">
+            <div id="winnerDisplay" class="winner-display mb-4">
+              <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="battle-actions">
+              <button class="btn btn-battle me-3" onclick="startBattle(<%= @pokemon[:id] %>)">
+                <i class="fas fa-redo me-2"></i>Đấu lại
+              </button>
+              
+              <%= link_to new_battle_path, class: "btn btn-outline-warning me-3" do %>
+                <i class="fas fa-dice me-2"></i>Chọn Pokemon khác
+              <% end %>
+              
+              <%= link_to root_path, class: "btn btn-outline-light" do %>
+                <i class="fas fa-home me-2"></i>Về trang chủ
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Battle JavaScript -->
+<script>
+let currentBattle = null;
+let battleAnimationSpeed = 1500; // 1.5 seconds per log entry
+
+async function startBattle(pokemonId) {
+  const startBtn = document.getElementById('startBattleBtn');
+  const battleArena = document.getElementById('battleArena');
+  const battleLog = document.getElementById('battleLog');
+  const battleResults = document.getElementById('battleResults');
+  
+  // Disable button and show loading
+  startBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang khởi tạo trận đấu...';
+  startBtn.disabled = true;
+  
+  // Clear previous results
+  battleResults.style.display = 'none';
+  battleLog.innerHTML = '<div class="log-entry text-info"><i class="fas fa-cog fa-spin me-2"></i>Đang tìm đối thủ...</div>';
+  
+  try {
+    const response = await fetch('/battles', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({
+        player_pokemon_id: pokemonId
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      currentBattle = data;
+      
+      // Show battle arena
+      battleArena.style.display = 'block';
+      battleArena.scrollIntoView({ behavior: 'smooth' });
+      
+      // Update opponent display
+      updateOpponentDisplay(data.opponent_pokemon);
+      
+      // Start battle animation
+      animateBattle(data.battle_log);
+      
+      // Reset button
+      startBtn.innerHTML = '<i class="fas fa-play me-2"></i>Bắt đầu trận chiến!';
+      startBtn.disabled = false;
+      
+    } else {
+      throw new Error(data.error || 'Lỗi không xác định');
+    }
+  } catch (error) {
+    console.error('Battle error:', error);
+    battleLog.innerHTML = `<div class="log-entry text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Lỗi: ${error.message}</div>`;
+    
+    // Reset button
+    startBtn.innerHTML = '<i class="fas fa-play me-2"></i>Bắt đầu trận chiến!';
+    startBtn.disabled = false;
+  }
+}
+
+function updateOpponentDisplay(opponent) {
+  const opponentDisplay = document.getElementById('opponentPokemonDisplay');
+  const opponentName = document.getElementById('opponentPokemonName');
+  
+  // Update opponent image
+  const imageUrl = opponent.sprites?.official_artwork || opponent.sprites?.front_default || '';
+  opponentDisplay.innerHTML = `
+    <img src="${imageUrl}" alt="${opponent.name}" class="pokemon-battle-image img-fluid" style="max-width: 200px;">
+  `;
+  
+  // Update opponent name
+  opponentName.textContent = opponent.name;
+  
+  // Update opponent types
+  const typesHtml = opponent.types.map(type => 
+    `<span class="pokemon-type me-1" style="background-color: ${type.color}">${type.name}</span>`
+  ).join('');
+  
+  opponentDisplay.innerHTML += `
+    <h4 class="fw-bold text-danger mt-3">${opponent.name}</h4>
+    <p class="text-light">#${opponent.id}</p>
+    <div class="mb-3">${typesHtml}</div>
+  `;
+}
+
+async function animateBattle(battleData) {
+  const battleLog = document.getElementById('battleLog');
+  const playerHpBar = document.getElementById('playerHpBar');
+  const opponentHpBar = document.getElementById('opponentHpBar');
+  const playerHpText = document.getElementById('playerHpText');
+  const opponentHpText = document.getElementById('opponentHpText');
+  
+  // Clear log
+  battleLog.innerHTML = '';
+  
+  // Initialize HP bars
+  const maxPlayerHp = battleData.max_player_hp;
+  const maxOpponentHp = battleData.max_opponent_hp;
+  
+  let currentPlayerHp = maxPlayerHp;
+  let currentOpponentHp = maxOpponentHp;
+  
+  playerHpText.textContent = `${currentPlayerHp}/${maxPlayerHp}`;
+  opponentHpText.textContent = `${currentOpponentHp}/${maxOpponentHp}`;
+  
+  // Animate each log entry
+  for (const [index, logEntry] of battleData.log.entries()) {
+    await new Promise(resolve => {
+      setTimeout(() => {
+        // Add log entry with animation
+        const logDiv = document.createElement('div');
+        logDiv.className = 'log-entry fade-in';
+        logDiv.innerHTML = `<i class="fas fa-chevron-right me-2"></i>${logEntry}`;
+        
+        battleLog.appendChild(logDiv);
+        battleLog.scrollTop = battleLog.scrollHeight;
+        
+        // Update HP bars based on log content (simplified)
+        if (logEntry.includes('HP:')) {
+          // Extract HP values from log and update bars
+          // This is a simplified version - you can make it more sophisticated
+          updateHpBarsFromLog(logEntry, playerHpBar, opponentHpBar, playerHpText, opponentHpText);
+        }
+        
+        resolve();
+      }, index * battleAnimationSpeed);
+    });
+  }
+  
+  // Show final results after animation
+  setTimeout(() => {
+    showBattleResults(battleData);
+  }, battleData.log.length * battleAnimationSpeed + 1000);
+}
+
+function updateHpBarsFromLog(logEntry, playerHpBar, opponentHpBar, playerHpText, opponentHpText) {
+  // Extract HP values from log entry (this is simplified)
+  const hpMatch = logEntry.match(/HP: (\d+)\/(\d+)/);
+  if (hpMatch) {
+    const currentHp = parseInt(hpMatch[1]);
+    const maxHp = parseInt(hpMatch[2]);
+    const hpPercentage = (currentHp / maxHp) * 100;
+    
+    // Determine which Pokemon's HP to update based on log content
+    if (logEntry.includes(document.getElementById('playerPokemonName').textContent)) {
+      playerHpBar.style.width = `${hpPercentage}%`;
+      playerHpText.textContent = `${currentHp}/${maxHp}`;
+      
+      // Change color based on HP percentage
+      if (hpPercentage > 50) {
+        playerHpBar.style.backgroundColor = '#28a745';
+      } else if (hpPercentage > 20) {
+        playerHpBar.style.backgroundColor = '#ffc107';
+      } else {
+        playerHpBar.style.backgroundColor = '#dc3545';
+      }
+    } else {
+      opponentHpBar.style.width = `${hpPercentage}%`;
+      opponentHpText.textContent = `${currentHp}/${maxHp}`;
+      
+      // Change color based on HP percentage
+      if (hpPercentage > 50) {
+        opponentHpBar.style.backgroundColor = '#28a745';
+      } else if (hpPercentage > 20) {
+        opponentHpBar.style.backgroundColor = '#ffc107';
+      } else {
+        opponentHpBar.style.backgroundColor = '#dc3545';
+      }
+    }
+  }
+}
+
+function showBattleResults(battleData) {
+  const battleResults = document.getElementById('battleResults');
+  const winnerDisplay = document.getElementById('winnerDisplay');
+  
+  let resultHtml = '';
+  
+  if (battleData.winner === 'player') {
+    resultHtml = `
+      <div class="winner-content">
+        <i class="fas fa-trophy text-warning fa-4x mb-3"></i>
+        <h2 class="text-success mb-3">🏆 Chiến Thắng!</h2>
+        <p class="lead text-light">Chúc mừng! Pokemon của bạn đã thắng!</p>
+        <div class="victory-stats">
+          <span class="badge bg-success me-2">
+            <i class="fas fa-heart me-1"></i>
+            HP còn lại: ${battleData.final_player_hp}
+          </span>
+        </div>
+      </div>
+    `;
+  } else if (battleData.winner === 'opponent') {
+    resultHtml = `
+      <div class="winner-content">
+        <i class="fas fa-skull text-danger fa-4x mb-3"></i>
+        <h2 class="text-danger mb-3">😢 Thất Bại!</h2>
+        <p class="lead text-light">Đừng bỏ cuộc! Thử lại lần nữa!</p>
+        <div class="defeat-stats">
+          <span class="badge bg-danger me-2">
+            <i class="fas fa-heart me-1"></i>
+            HP còn lại: ${battleData.final_player_hp}
+          </span>
+        </div>
+      </div>
+    `;
+  } else {
+    resultHtml = `
+      <div class="winner-content">
+        <i class="fas fa-handshake text-info fa-4x mb-3"></i>
+        <h2 class="text-info mb-3">🤝 Hòa!</h2>
+        <p class="lead text-light">Trận đấu kết thúc với tỷ số hòa!</p>
+        <div class="tie-stats">
+          <span class="badge bg-info me-2">
+            <i class="fas fa-balance-scale me-1"></i>
+            Trận đấu cân bằng
+          </span>
+        </div>
+      </div>
+    `;
+  }
+  
+  winnerDisplay.innerHTML = resultHtml;
+  battleResults.style.display = 'block';
+  battleResults.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
