@@ -124,13 +124,15 @@ class PokemonController < ApplicationController
       @total_pages = (@total_count.to_f / @limit).ceil
       @has_next = pokemon_list[:next].present?
       @has_previous = pokemon_list[:previous].present?
+      @data_source = pokemon_list[:source] || 'API'
       
     rescue => e
       Rails.logger.error "Error fetching Pokemon list: #{e.message}"
       @pokemon_list = []
       @total_count = 0
       @total_pages = 1
-      @error = "Unable to load Pokemon list. Please try again later."
+      @data_source = 'Fallback'
+      @error = "Unable to load Pokemon list from API. Using fallback data."
     end
 
     respond_to do |format|

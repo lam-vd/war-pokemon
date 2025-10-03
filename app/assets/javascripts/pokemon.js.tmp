@@ -1,0 +1,267 @@
+// Pokemon JavaScript functionality
+
+// Share Pokemon function
+window.sharePokemons = function(name, id) {
+  if (navigator.share) {
+    navigator.share({
+      title: `War Pokemon - ${name}`,
+      text: `Check out ${name} (#${id}) on War Pokemon!`,
+      url: window.location.href
+    });
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('Link đã được copy vào clipboard!');
+    });
+  }
+};
+
+// Show large image modal
+window.showLargeImage = function(imageUrl, altText) {
+  const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+  const modalImage = document.getElementById('modalImage');
+  const modalTitle = document.getElementById('imageModalLabel');
+  
+  if (modalImage && modalTitle) {
+    modalImage.src = imageUrl;
+    modalImage.alt = altText;
+    modalTitle.textContent = altText;
+    
+    modal.show();
+  }
+};
+
+// Jump to page function for pagination
+window.jumpToPage = function() {
+  const pageInput = document.getElementById('jumpToPage');
+  const maxPages = parseInt(pageInput.getAttribute('data-max-pages') || '1');
+  const pageNumber = parseInt(pageInput.value);
+  
+  if (pageNumber >= 1 && pageNumber <= maxPages) {
+    const currentUrl = new URL(window.location);
+    currentUrl.searchParams.set('page', pageNumber);
+    window.location.href = currentUrl.toString();
+  } else {
+    alert(`Vui lòng nhập số trang hợp lệ (1 - ${maxPages})`);
+  }
+};
+
+// Search form handling
+window.handleSearchSubmit = function(form) {
+  const searchInput = form.querySelector('input[name="search"]');
+  const submitBtn = form.querySelector('input[type="submit"]');
+  
+  if (searchInput && submitBtn) {
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Đang tìm...';
+    submitBtn.disabled = true;
+    
+    // Re-enable after 3 seconds as fallback
+    setTimeout(() => {
+      submitBtn.innerHTML = 'Tìm kiếm';
+      submitBtn.disabled = false;
+    }, 3000);
+  }
+  
+  return true;
+};
+
+// Show popular Pokemon function
+window.showPopularPokemon = function() {
+  const popularList = [
+    'Pikachu', 'Charizard', 'Bulbasaur', 'Squirtle', 
+    'Mewtwo', 'Mew', 'Lucario', 'Garchomp', 
+    'Rayquaza', 'Arceus', 'Dialga', 'Palkia'
+  ];
+  
+  const randomPokemon = popularList[Math.floor(Math.random() * popularList.length)];
+  const searchInput = document.querySelector('input[name="search"]');
+  
+  if (searchInput) {
+    searchInput.value = randomPokemon.toLowerCase();
+    searchInput.form.submit();
+  }
+};
+
+// Pokemon type color mapping
+window.getPokemonTypeColor = function(type) {
+  const typeColors = {
+    normal: '#A8A878',
+    fighting: '#C03028',
+    flying: '#A890F0',
+    poison: '#A040A0',
+    ground: '#E0C068',
+    rock: '#B8A038',
+    bug: '#A8B820',
+    ghost: '#705898',
+    steel: '#B8B8D0',
+    fire: '#F08030',
+    water: '#6890F0',
+    grass: '#78C850',
+    electric: '#F8D030',
+    psychic: '#F85888',
+    ice: '#98D8D8',
+    dragon: '#7038F8',
+    dark: '#705848',
+    fairy: '#EE99AC'
+  };
+  
+  return typeColors[type.toLowerCase()] || '#68A090';
+};
+
+// Initialize Pokemon page functionality
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // Animate stats on show page
+  const statFills = document.querySelectorAll('.stat-fill');
+  if (statFills.length > 0) {
+    setTimeout(() => {
+      statFills.forEach((fill, index) => {
+        const width = fill.style.width;
+        fill.style.width = '0%';
+        setTimeout(() => {
+          fill.style.width = width;
+        }, 100 + (index * 100));
+      });
+    }, 300);
+  }
+  
+  // Loading animation for Pokemon images
+  const sprites = document.querySelectorAll('.pokemon-sprite, .pokemon-image');
+  sprites.forEach((sprite, index) => {
+    sprite.addEventListener('load', function() {
+      this.style.opacity = '0';
+      this.style.transform = 'scale(0.8)';
+      this.style.transition = 'all 0.5s ease';
+      
+      setTimeout(() => {
+        this.style.opacity = '1';
+        this.style.transform = 'scale(1)';
+      }, Math.random() * 200 + (index * 50));
+    });
+    
+    // Handle image load errors
+    sprite.addEventListener('error', function() {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'pokemon-image-placeholder';
+      placeholder.style.width = this.style.width || '80px';
+      placeholder.style.height = this.style.height || '80px';
+      placeholder.innerHTML = '<i class="fas fa-question"></i>';
+      
+      if (this.parentNode) {
+        this.parentNode.replaceChild(placeholder, this);
+      }
+    });
+  });
+  
+  // Enter key support for quick jump
+  const jumpToPageInput = document.getElementById('jumpToPage');
+  if (jumpToPageInput) {
+    jumpToPageInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        jumpToPage();
+      }
+    });
+  }
+  
+  // Auto-focus search input on home page
+  const searchInput = document.querySelector('input[name="search"]');
+  if (searchInput && window.location.pathname === '/') {
+    searchInput.focus();
+  }
+  
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + K for search focus
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const searchInput = document.querySelector('input[name="search"]');
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }
+    
+    // R for random Pokemon
+    if (e.key === 'r' && !e.ctrlKey && !e.metaKey && !e.target.matches('input, textarea')) {
+      e.preventDefault();
+      window.location.href = '/pokemon/random';
+    }
+    
+    // H for home
+    if (e.key === 'h' && !e.ctrlKey && !e.metaKey && !e.target.matches('input, textarea')) {
+      e.preventDefault();
+      window.location.href = '/';
+    }
+  });
+  
+  // Add smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+  
+  // Add loading states for buttons
+  document.querySelectorAll('.btn-pokemon').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      if (!this.disabled && this.type === 'submit') {
+        const originalText = this.innerHTML;
+        this.innerHTML = '<span class="loading-spinner"></span> Loading...';
+        this.disabled = true;
+        
+        setTimeout(() => {
+          this.innerHTML = originalText;
+          this.disabled = false;
+        }, 3000);
+      }
+    });
+  });
+  
+  // Add tooltip functionality
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+  
+  // Add comparison table sorting
+  const compareStats = document.querySelectorAll('.comparison-stat');
+  compareStats.forEach(stat => {
+    const pokemon1Value = parseFloat(stat.dataset.pokemon1 || '0');
+    const pokemon2Value = parseFloat(stat.dataset.pokemon2 || '0');
+    
+    if (pokemon1Value > pokemon2Value) {
+      stat.classList.add('winner-pokemon1');
+    } else if (pokemon2Value > pokemon1Value) {
+      stat.classList.add('winner-pokemon2');
+    }
+  });
+  
+  console.log('🎮 War Pokemon JavaScript loaded successfully!');
+});
+
+// Add CSS classes for comparison winners
+const style = document.createElement('style');
+style.textContent = `
+  .winner-pokemon1 .pokemon1-stat {
+    background: linear-gradient(45deg, #10b981, #059669) !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 2px 6px;
+  }
+  
+  .winner-pokemon2 .pokemon2-stat {
+    background: linear-gradient(45deg, #3b82f6, #1d4ed8) !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 2px 6px;
+  }
+`;
+document.head.appendChild(style);

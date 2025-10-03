@@ -1,13 +1,16 @@
 <div class="container">
   <div class="row justify-content-center">
-    <div class="col-lg-12">
+    <div class="col-lg-12 pt-4">
       <!-- Header -->
-      <div class="text-center mb-5">
+      <div class="text-center mb-5 ">
         <h1 class="display-4 fw-bold text-light mb-3">
           <i class="fas fa-list me-3 text-warning"></i>Tất cả Pokémon
         </h1>
         <p class="lead text-light-50">
           Khám phá tất cả <%= @total_count %> Pokémon có trong hệ thống
+          <% if @data_source %>
+            <br><small class="text-warning"><i class="fas fa-database me-1"></i>Dữ liệu từ: <%= @data_source %></small>
+          <% end %>
         </p>
         
         <!-- Back Button -->
@@ -68,7 +71,7 @@
                       <h5 class="card-title text-light mb-2 fw-bold">
                         <%= pokemon[:name] %>
                       </h5>
-                      <p class="card-text text-muted mb-3">
+                      <p class="card-text text-light mb-3 fw-bold">
                         #<%= pokemon[:id].to_s.rjust(3, '0') %>
                       </p>
 
@@ -144,7 +147,7 @@
             <!-- Show dots if needed -->
             <% if end_page < @total_pages %>
               <li class="page-item disabled">
-                <span class="page-link bg-dark border-light text-muted">...</span>
+                <span class="page-link bg-dark border-light text-light">...</span>
               </li>
               <li class="page-item">
                 <%= link_to all_pokemon_index_path(page: @total_pages), class: "page-link bg-dark border-light text-light" do %>
@@ -173,9 +176,9 @@
         <!-- Quick Jump -->
         <div class="row justify-content-center mt-4">
           <div class="col-md-6 text-center">
-            <div class="pokemon-card">
+            <div class="pokemon-card bg-dark">
               <div class="p-3">
-                <h6 class="text-light mb-3">
+                <h6 class="text-light mb-3 fw-bold">
                   <i class="fas fa-bolt me-2 text-warning"></i>Nhảy nhanh đến trang
                 </h6>
                 <div class="row g-2">
@@ -183,6 +186,8 @@
                     <input type="number" 
                            class="form-control bg-dark border-light text-light" 
                            id="jumpToPage" 
+                           data-max-pages="<%= @total_pages %>"
+                           data-base-url="<%= all_pokemon_index_path %>"
                            min="1" 
                            max="<%= @total_pages %>" 
                            value="<%= @page %>" 
@@ -203,7 +208,7 @@
       <!-- Quick Stats -->
       <div class="row mt-5">
         <div class="col-md-4 mb-3">
-          <div class="pokemon-card text-center">
+          <div class="pokemon-card text-center bg-dark">
             <div class="p-4">
               <i class="fas fa-list-ol fa-2x text-primary mb-3"></i>
               <h4 class="text-light"><%= @total_count %></h4>
@@ -212,7 +217,7 @@
           </div>
         </div>
         <div class="col-md-4 mb-3">
-          <div class="pokemon-card text-center">
+          <div class="pokemon-card text-center bg-dark">
             <div class="p-4">
               <i class="fas fa-eye fa-2x text-success mb-3"></i>
               <h4 class="text-light"><%= @pokemon_list.length %></h4>
@@ -221,7 +226,7 @@
           </div>
         </div>
         <div class="col-md-4 mb-3">
-          <div class="pokemon-card text-center">
+          <div class="pokemon-card text-center bg-dark">
             <div class="p-4">
               <i class="fas fa-layer-group fa-2x text-warning mb-3"></i>
               <h4 class="text-light"><%= @total_pages %></h4>
@@ -234,86 +239,4 @@
   </div>
 </div>
 
-<style>
-  .pokemon-list-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  }
 
-  .pokemon-list-card:hover {
-    transform: translateY(-5px);
-    border: 1px solid rgba(255, 193, 7, 0.5) !important;
-    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
-  }
-
-  .pokemon-sprite {
-    transition: transform 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-  }
-
-  .pokemon-list-card:hover .pokemon-sprite {
-    transform: scale(1.1);
-  }
-
-  .pagination .page-link {
-    border-radius: 8px !important;
-    margin: 0 2px;
-    transition: all 0.3s ease;
-  }
-
-  .pagination .page-link:hover {
-    background-color: rgba(255, 193, 7, 0.2) !important;
-    border-color: #ffc107 !important;
-    transform: translateY(-1px);
-  }
-
-  .bg-pokemon {
-    background-color: #ffc107 !important;
-  }
-
-  .border-pokemon {
-    border-color: #ffc107 !important;
-  }
-
-  .text-light-50 {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-</style>
-
-<script>
-  function jumpToPage() {
-    const pageInput = document.getElementById('jumpToPage');
-    const pageNumber = parseInt(pageInput.value);
-    
-    if (pageNumber >= 1 && pageNumber <= <%= @total_pages %>) {
-      window.location.href = '<%= all_pokemon_index_path %>?page=' + pageNumber;
-    } else {
-      alert('Vui lòng nhập số trang hợp lệ (1 - <%= @total_pages %>)');
-    }
-  }
-
-  // Enter key support for quick jump
-  document.getElementById('jumpToPage')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      jumpToPage();
-    }
-  });
-
-  // Loading animation for Pokemon images
-  document.addEventListener('DOMContentLoaded', function() {
-    const sprites = document.querySelectorAll('.pokemon-sprite');
-    
-    sprites.forEach(sprite => {
-      sprite.addEventListener('load', function() {
-        this.style.opacity = '0';
-        this.style.transform = 'scale(0.8)';
-        this.style.transition = 'all 0.5s ease';
-        
-        setTimeout(() => {
-          this.style.opacity = '1';
-          this.style.transform = 'scale(1)';
-        }, Math.random() * 200);
-      });
-    });
-  });
-</script>

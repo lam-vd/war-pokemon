@@ -69,7 +69,8 @@
                 <button class="btn btn-pokemon" onclick="sharePokemons('<%= @pokemon[:name] %>', '<%= @pokemon[:id] %>')">
                   <i class="fas fa-share me-2"></i>Chia sẻ Pokémon
                 </button>
-                <%= link_to "/pokemon/random", class: "btn btn-outline-primary" do %>
+                <hr>
+                <%= link_to random_pokemon_index_path, class: "btn btn-outline-primary" do %>
                   <i class="fas fa-random me-2"></i>Pokémon ngẫu nhiên khác
                 <% end %>
               </div>
@@ -241,45 +242,4 @@
   </div>
 </div>
 
-<script>
-  function sharePokemons(name, id) {
-    if (navigator.share) {
-      navigator.share({
-        title: `War Pokemon - ${name}`,
-        text: `Check out ${name} (#${id}) on War Pokemon!`,
-        url: window.location.href
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        alert('Link đã được copy vào clipboard!');
-      });
-    }
-  }
 
-  function showLargeImage(imageUrl, altText) {
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-    const modalImage = document.getElementById('modalImage');
-    const modalTitle = document.getElementById('imageModalLabel');
-    
-    modalImage.src = imageUrl;
-    modalImage.alt = altText;
-    modalTitle.textContent = altText;
-    
-    modal.show();
-  }
-
-  // Animate stats on load
-  document.addEventListener('DOMContentLoaded', function() {
-    const statFills = document.querySelectorAll('.stat-fill');
-    
-    setTimeout(() => {
-      statFills.forEach(fill => {
-        const width = fill.style.width;
-        fill.style.width = '0%';
-        setTimeout(() => {
-          fill.style.width = width;
-        }, 100);
-      });
-    }, 300);
-  });
-</script>
