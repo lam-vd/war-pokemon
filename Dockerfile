@@ -12,5 +12,13 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize
     && rm dockerize-linux-amd64-v0.6.1.tar.gz
 
 WORKDIR /app
+
+# Copy Gemfile first for better Docker layer caching
+COPY Gemfile* ./
+RUN gem install rails bundler && \
+    bundle config --global retry 3 && \
+    bundle config --global timeout 30 && \
+    bundle install --jobs 4
+
+# Copy the rest of the application
 COPY . .
-RUN gem install rails bundler

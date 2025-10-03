@@ -22,6 +22,9 @@ gem "redis", ">= 4.0.1"
 # HTTP client for Pokemon API
 gem "httparty"
 
+# Pokemon API wrapper gem
+gem "poke-api-v2"
+
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
 

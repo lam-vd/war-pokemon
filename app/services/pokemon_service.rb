@@ -42,7 +42,7 @@ class PokemonService < BaseService
           end
         end
 
-      rescue Net::TimeoutError, Net::OpenTimeout
+      rescue Net::OpenTimeout, Timeout::Error
         { error: "Request timeout - please try again" }
       rescue => e
         Rails.logger.error "PokemonService Error: #{e.message}"

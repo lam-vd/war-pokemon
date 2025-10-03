@@ -9,6 +9,22 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
+  # Pokemon App Routes
+  root 'pokemon#index'
+  
+  # Pokemon search and display
+  resources :pokemon, only: [:show, :index] do
+    collection do
+      get :search
+      get :random
+      get :compare
+      get :all
+    end
+    member do
+      get 'types/:type', to: 'pokemon#type_info', as: :type
+    end
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end
