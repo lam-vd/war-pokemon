@@ -2,7 +2,7 @@
 
 # Base Service Class for all Pokemon-related services
 class BaseService
-  include PokemonConstants
+  # include PokemonConstants # Temporarily commented out
   
   # Service Pattern: Call method for easy usage
   def self.call(*args, **kwargs)
@@ -13,14 +13,17 @@ class BaseService
   include HTTParty
   
   # Set default headers and options
-  headers 'User-Agent' => "War Pokemon App v#{Rails.application.config.version rescue '1.0'}"
-  timeout PokemonApiConfig::TIMEOUT
+  headers 'User-Agent' => "War Pokemon App v1.0"
+  default_timeout 30
   
   protected
   
   # Pokemon API configuration access
   def pokemon_api_config
-    PokemonApiConfig
+    @pokemon_api_config ||= begin
+      require Rails.root.join('config', 'pokemon_api') unless defined?(PokemonApiConfig)
+      PokemonApiConfig
+    end
   end
   
   # Cache key generator with environment namespace

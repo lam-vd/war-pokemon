@@ -1,0 +1,355 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <!-- Back Button -->
+      <div class="mb-4">
+        <%= link_to root_path, class: "btn btn-outline-light mt-4" do %>
+          <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+        <% end %>
+      </div>
+
+      <!-- Compare Form -->
+      <div class="search-container">
+        <h2 class="text-center text-white mb-4">
+          <i class="fas fa-balance-scale me-2"></i>So sánh Pokémon
+        </h2>
+        
+        <%= form_with url: compare_pokemon_index_path, method: :get, local: true, class: "mb-4" do |form| %>
+          <div class="row g-3">
+            <div class="col-md-5">
+              <%= form.text_field :pokemon1, 
+                    placeholder: "Pokémon thứ nhất (tên hoặc ID)",
+                    value: params[:pokemon1],
+                    class: "form-control form-control-lg",
+                    style: "border-radius: 15px;" %>
+            </div>
+            <div class="col-md-2 text-center">
+              <span class="text-white fw-bold fs-3">VS</span>
+            </div>
+            <div class="col-md-5">
+              <%= form.text_field :pokemon2, 
+                    placeholder: "Pokémon thứ hai (tên hoặc ID)",
+                    value: params[:pokemon2],
+                    class: "form-control form-control-lg",
+                    style: "border-radius: 15px;" %>
+            </div>
+            <div class="col-12 text-center">
+              <%= form.submit "So sánh ngay", class: "btn btn-pokemon btn-lg" %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Quick Compare Suggestions -->
+        <div class="text-center mt-4">
+          <h6 class="text-white mb-3">So sánh nhanh:</h6>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            <%= link_to "?pokemon1=pikachu&pokemon2=raichu", class: "btn btn-outline-light btn-sm" do %>
+              Pikachu vs Raichu
+            <% end %>
+            <%= link_to "?pokemon1=charizard&pokemon2=blastoise", class: "btn btn-outline-light btn-sm" do %>
+              Charizard vs Blastoise
+            <% end %>
+            <%= link_to "?pokemon1=mewtwo&pokemon2=mew", class: "btn btn-outline-light btn-sm" do %>
+              Mewtwo vs Mew
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Display -->
+      <% if @error %>
+        <div class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <%= @error %>
+        </div>
+      <% end %>
+
+      <!-- Comparison Results -->
+      <% if @pokemon1 && @pokemon2 && !@error %>
+        <div class="pokemon-card p-0 overflow-hidden">
+          <!-- Header Comparison -->
+          <div class="bg-primary text-white p-3">
+            <div class="row text-center">
+              <div class="col-5">
+                <h4 class="mb-0"><%= @pokemon1[:name] %></h4>
+                <small>#<%= @pokemon1[:id] %></small>
+              </div>
+              <div class="col-2">
+                <h3><i class="fas fa-bolt"></i></h3>
+              </div>
+              <div class="col-5">
+                <h4 class="mb-0"><%= @pokemon2[:name] %></h4>
+                <small>#<%= @pokemon2[:id] %></small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-0">
+            <!-- Pokemon 1 -->
+            <div class="col-md-6 p-4 border-end">
+              <div class="text-center mb-4">
+                <% if @pokemon1[:sprites][:official_artwork] || @pokemon1[:sprites][:front_default] %>
+                  <%= image_tag (@pokemon1[:sprites][:official_artwork] || @pokemon1[:sprites][:front_default]), 
+                        alt: @pokemon1[:name],
+                        class: "img-fluid pokemon-image",
+                        style: "max-width: 180px;" %>
+                <% else %>
+                  <div class="bg-light rounded p-3">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Types -->
+              <div class="text-center mb-3">
+                <% @pokemon1[:types].each do |type| %>
+                  <span class="pokemon-type" style="background-color: <%= type[:color] %>">
+                    <%= type[:name] %>
+                  </span>
+                <% end %>
+              </div>
+
+              <!-- Basic Info -->
+              <div class="mb-3">
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <i class="fas fa-arrows-alt-v text-primary me-2"></i>
+                    <strong><%= (@pokemon1[:height] / 10.0).round(1) %> m</strong>
+                  </div>
+                  <div class="col-6">
+                    <i class="fas fa-weight text-warning me-2"></i>
+                    <strong><%= (@pokemon1[:weight] / 10.0).round(1) %> kg</strong>
+                  </div>
+                </div>
+                <% if @pokemon1[:base_experience] %>
+                  <div class="text-center">
+                    <i class="fas fa-star text-success me-2"></i>
+                    <strong><%= @pokemon1[:base_experience] %> EXP</strong>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Stats -->
+              <% if @pokemon1[:stats] && @pokemon1[:stats].any? %>
+                <h6 class="text-primary mb-3"><i class="fas fa-chart-bar me-2"></i>Chỉ số</h6>
+                <% @pokemon1[:stats].each do |stat_name, stat_value| %>
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                      <span><%= stat_name %>:</span>
+                      <strong class="<%= compare_stat_class(stat_value, @pokemon2[:stats][stat_name]) %>">
+                        <%= stat_value %>
+                        <% if @pokemon2[:stats] && @pokemon2[:stats][stat_name] %>
+                          <% diff = stat_value - @pokemon2[:stats][stat_name] %>
+                          <% if diff > 0 %>
+                            <i class="fas fa-caret-up text-success ms-1"></i>
+                          <% elsif diff < 0 %>
+                            <i class="fas fa-caret-down text-danger ms-1"></i>
+                          <% end %>
+                        <% end %>
+                      </strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill" style="width: <%= [stat_value.to_f / (stat_name == 'Total' ? 800 : 200) * 100, 100].min %>%"></div>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+
+            <!-- Pokemon 2 -->
+            <div class="col-md-6 p-4">
+              <div class="text-center mb-4">
+                <% if @pokemon2[:sprites][:official_artwork] || @pokemon2[:sprites][:front_default] %>
+                  <%= image_tag (@pokemon2[:sprites][:official_artwork] || @pokemon2[:sprites][:front_default]), 
+                        alt: @pokemon2[:name],
+                        class: "img-fluid pokemon-image",
+                        style: "max-width: 180px;" %>
+                <% else %>
+                  <div class="bg-light rounded p-3">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Types -->
+              <div class="text-center mb-3">
+                <% @pokemon2[:types].each do |type| %>
+                  <span class="pokemon-type" style="background-color: <%= type[:color] %>">
+                    <%= type[:name] %>
+                  </span>
+                <% end %>
+              </div>
+
+              <!-- Basic Info -->
+              <div class="mb-3">
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <i class="fas fa-arrows-alt-v text-primary me-2"></i>
+                    <strong class="<%= compare_basic_stat_class(@pokemon2[:height], @pokemon1[:height]) %>">
+                      <%= (@pokemon2[:height] / 10.0).round(1) %> m
+                    </strong>
+                  </div>
+                  <div class="col-6">
+                    <i class="fas fa-weight text-warning me-2"></i>
+                    <strong class="<%= compare_basic_stat_class(@pokemon2[:weight], @pokemon1[:weight]) %>">
+                      <%= (@pokemon2[:weight] / 10.0).round(1) %> kg
+                    </strong>
+                  </div>
+                </div>
+                <% if @pokemon2[:base_experience] %>
+                  <div class="text-center">
+                    <i class="fas fa-star text-success me-2"></i>
+                    <strong class="<%= compare_basic_stat_class(@pokemon2[:base_experience], @pokemon1[:base_experience]) %>">
+                      <%= @pokemon2[:base_experience] %> EXP
+                    </strong>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Stats -->
+              <% if @pokemon2[:stats] && @pokemon2[:stats].any? %>
+                <h6 class="text-primary mb-3"><i class="fas fa-chart-bar me-2"></i>Chỉ số</h6>
+                <% @pokemon2[:stats].each do |stat_name, stat_value| %>
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                      <span><%= stat_name %>:</span>
+                      <strong class="<%= compare_stat_class(stat_value, @pokemon1[:stats][stat_name]) %>">
+                        <%= stat_value %>
+                        <% if @pokemon1[:stats] && @pokemon1[:stats][stat_name] %>
+                          <% diff = stat_value - @pokemon1[:stats][stat_name] %>
+                          <% if diff > 0 %>
+                            <i class="fas fa-caret-up text-success ms-1"></i>
+                          <% elsif diff < 0 %>
+                            <i class="fas fa-caret-down text-danger ms-1"></i>
+                          <% end %>
+                        <% end %>
+                      </strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill" style="width: <%= [stat_value.to_f / (stat_name == 'Total' ? 800 : 200) * 100, 100].min %>%"></div>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <% if @pokemon1[:stats] && @pokemon2[:stats] %>
+            <div class="bg-light p-4 border-top">
+              <h5 class="text-center mb-3"><i class="fas fa-trophy text-warning me-2"></i>Tóm tắt so sánh</h5>
+              <div class="row text-center">
+                <div class="col-md-4">
+                  <div class="card border-0 bg-transparent">
+                    <div class="card-body">
+                      <% total1 = @pokemon1[:stats]['Total'] || 0 %>
+                      <% total2 = @pokemon2[:stats]['Total'] || 0 %>
+                      <% if total1 > total2 %>
+                        <i class="fas fa-crown text-warning fa-2x mb-2"></i>
+                        <h6><%= @pokemon1[:name] %></h6>
+                        <small>Tổng chỉ số cao hơn</small>
+                      <% elsif total2 > total1 %>
+                        <i class="fas fa-crown text-warning fa-2x mb-2"></i>
+                        <h6><%= @pokemon2[:name] %></h6>
+                        <small>Tổng chỉ số cao hơn</small>
+                      <% else %>
+                        <i class="fas fa-equals text-info fa-2x mb-2"></i>
+                        <h6>Hòa nhau</h6>
+                        <small>Tổng chỉ số bằng nhau</small>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card border-0 bg-transparent">
+                    <div class="card-body">
+                      <% if @pokemon1[:height] > @pokemon2[:height] %>
+                        <i class="fas fa-arrows-alt-v text-primary fa-2x mb-2"></i>
+                        <h6><%= @pokemon1[:name] %></h6>
+                        <small>Cao hơn</small>
+                      <% elsif @pokemon2[:height] > @pokemon1[:height] %>
+                        <i class="fas fa-arrows-alt-v text-primary fa-2x mb-2"></i>
+                        <h6><%= @pokemon2[:name] %></h6>
+                        <small>Cao hơn</small>
+                      <% else %>
+                        <i class="fas fa-equals text-info fa-2x mb-2"></i>
+                        <h6>Cùng chiều cao</h6>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card border-0 bg-transparent">
+                    <div class="card-body">
+                      <% if @pokemon1[:weight] > @pokemon2[:weight] %>
+                        <i class="fas fa-weight text-warning fa-2x mb-2"></i>
+                        <h6><%= @pokemon1[:name] %></h6>
+                        <small>Nặng hơn</small>
+                      <% elsif @pokemon2[:weight] > @pokemon1[:weight] %>
+                        <i class="fas fa-weight text-warning fa-2x mb-2"></i>
+                        <h6><%= @pokemon2[:name] %></h6>
+                        <small>Nặng hơn</small>
+                      <% else %>
+                        <i class="fas fa-equals text-info fa-2x mb-2"></i>
+                        <h6>Cùng cân nặng</h6>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center mt-4">
+          <div class="btn-group" role="group">
+            <%= link_to pokemon_path("#{@pokemon1[:id]}"), class: "btn btn-outline-primary" do %>
+              <i class="fas fa-eye me-1"></i>Chi tiết <%= @pokemon1[:name] %>
+            <% end %>
+            <%= link_to pokemon_path("#{@pokemon2[:id]}"), class: "btn btn-outline-primary" do %>
+              <i class="fas fa-eye me-1"></i>Chi tiết <%= @pokemon2[:name] %>
+            <% end %>
+            <button class="btn btn-success" onclick="shareComparison()">
+              <i class="fas fa-share me-1"></i>Chia sẻ so sánh
+            </button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  function shareComparison() {
+    <% if @pokemon1 && @pokemon2 %>
+      const text = `So sánh <%= @pokemon1[:name] %> vs <%= @pokemon2[:name] %> trên War Pokemon!`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'War Pokemon - So sánh Pokémon',
+          text: text,
+          url: window.location.href
+        });
+      } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('Link so sánh đã được copy!');
+        });
+      }
+    <% end %>
+  }
+
+  // Animate comparison on load
+  document.addEventListener('DOMContentLoaded', function() {
+    const statFills = document.querySelectorAll('.stat-fill');
+    
+    setTimeout(() => {
+      statFills.forEach((fill, index) => {
+        const width = fill.style.width;
+        fill.style.width = '0%';
+        setTimeout(() => {
+          fill.style.width = width;
+        }, 100 + (index * 50));
+      });
+    }, 500);
+  });
+</script>

@@ -1,0 +1,242 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-12 pt-4">
+      <!-- Header -->
+      <div class="text-center mb-5 ">
+        <h1 class="display-4 fw-bold text-light mb-3">
+          <i class="fas fa-list me-3 text-warning"></i>Tất cả Pokémon
+        </h1>
+        <p class="lead text-light-50">
+          Khám phá tất cả <%= @total_count %> Pokémon có trong hệ thống
+          <% if @data_source %>
+            <br><small class="text-warning"><i class="fas fa-database me-1"></i>Dữ liệu từ: <%= @data_source %></small>
+          <% end %>
+        </p>
+        
+        <!-- Back Button -->
+        <div class="mb-4">
+          <%= link_to root_path, class: "btn btn-outline-light" do %>
+            <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <% if @error %>
+        <div class="alert alert-danger text-center">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <%= @error %>
+        </div>
+      <% end %>
+
+      <!-- Pagination Info -->
+      <% unless @pokemon_list.empty? %>
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="text-light">
+              <i class="fas fa-info-circle me-2"></i>
+              Hiển thị <%= (@page - 1) * @limit + 1 %> - <%= [(@page - 1) * @limit + @limit, @total_count].min %> 
+              trong tổng số <%= @total_count %> Pokémon
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <div class="text-light">
+              <i class="fas fa-bookmark me-2"></i>
+              Trang <%= @page %> / <%= @total_pages %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Pokemon Grid -->
+      <% if @pokemon_list.any? %>
+        <div class="row g-4 mb-5">
+          <% @pokemon_list.each do |pokemon| %>
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+              <div class="pokemon-card h-100">
+                <%= link_to pokemon_path(pokemon[:id]), class: "text-decoration-none d-block h-100" do %>
+                  <div class="card bg-dark border-light h-100 pokemon-list-card">
+                    <div class="card-body text-center p-4">
+                      <!-- Pokemon Image -->
+                      <div class="mb-3">
+                        <% sprite_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/#{pokemon[:id]}.png" %>
+                        <%= image_tag sprite_url, 
+                              alt: pokemon[:name],
+                              class: "pokemon-sprite img-fluid",
+                              style: "width: 80px; height: 80px; object-fit: contain;",
+                              onerror: "this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjM0Y0MDUxIiByeD0iOCIvPgo8cGF0aCBkPSJNNDAgMjBDNDggMjAgNTUgMjcgNTUgMzVDNTUgNDMgNDggNTAgNDAgNTBDMzIgNTAgMjUgNDMgMjUgMzVDMjUgMjcgMzIgMjAgNDAgMjBaIiBmaWxsPSIjNkM3NTdEIi8+CjxjaXJjbGUgY3g9IjM0IiBjeT0iMzIiIHI9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPGNpcmNsZSBjeD0iNDYiIGN5PSIzMiIgcj0iMiIgZmlsbD0iI0ZGRkZGRiIvPgo8cGF0aCBkPSJNMzYgNDBMNDAgNDNMNDQgNDAiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+Cg=='" %>
+                      </div>
+
+                      <!-- Pokemon Info -->
+                      <h5 class="card-title text-light mb-2 fw-bold">
+                        <%= pokemon[:name] %>
+                      </h5>
+                      <p class="card-text text-light mb-3 fw-bold">
+                        #<%= pokemon[:id].to_s.rjust(3, '0') %>
+                      </p>
+
+                      <!-- View Details Button -->
+                      <div class="d-grid">
+                        <span class="btn btn-pokemon btn-sm">
+                          <i class="fas fa-eye me-2"></i>Xem chi tiết
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <div class="pokemon-card">
+            <div class="p-5">
+              <i class="fas fa-search fa-4x text-muted mb-4"></i>
+              <h3 class="text-light mb-3">Không tìm thấy Pokémon nào</h3>
+              <p class="text-light-50 mb-4">Có vẻ như không có dữ liệu Pokémon nào trong trang này.</p>
+              <%= link_to root_path, class: "btn btn-pokemon" do %>
+                <i class="fas fa-home me-2"></i>Quay lại trang chủ
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Pagination -->
+      <% if @total_pages > 1 %>
+        <nav aria-label="Pokemon pagination" class="mt-5">
+          <ul class="pagination justify-content-center">
+            <!-- Previous Button -->
+            <% if @has_previous %>
+              <li class="page-item">
+                <%= link_to all_pokemon_index_path(page: @page - 1), class: "page-link bg-dark border-light text-light" do %>
+                  <i class="fas fa-chevron-left"></i> Trước
+                <% end %>
+              </li>
+            <% else %>
+              <li class="page-item disabled">
+                <span class="page-link bg-dark border-light text-muted">
+                  <i class="fas fa-chevron-left"></i> Trước
+                </span>
+              </li>
+            <% end %>
+
+            <!-- Page Numbers -->
+            <% start_page = [@page - 2, 1].max %>
+            <% end_page = [start_page + 4, @total_pages].min %>
+            <% start_page = [end_page - 4, 1].max %>
+
+            <% (start_page..end_page).each do |page| %>
+              <% if page == @page %>
+                <li class="page-item active">
+                  <span class="page-link bg-pokemon border-pokemon text-dark">
+                    <%= page %>
+                  </span>
+                </li>
+              <% else %>
+                <li class="page-item">
+                  <%= link_to all_pokemon_index_path(page: page), class: "page-link bg-dark border-light text-light" do %>
+                    <%= page %>
+                  <% end %>
+                </li>
+              <% end %>
+            <% end %>
+
+            <!-- Show dots if needed -->
+            <% if end_page < @total_pages %>
+              <li class="page-item disabled">
+                <span class="page-link bg-dark border-light text-light">...</span>
+              </li>
+              <li class="page-item">
+                <%= link_to all_pokemon_index_path(page: @total_pages), class: "page-link bg-dark border-light text-light" do %>
+                  <%= @total_pages %>
+                <% end %>
+              </li>
+            <% end %>
+
+            <!-- Next Button -->
+            <% if @has_next %>
+              <li class="page-item">
+                <%= link_to all_pokemon_index_path(page: @page + 1), class: "page-link bg-dark border-light text-light" do %>
+                  Sau <i class="fas fa-chevron-right"></i>
+                <% end %>
+              </li>
+            <% else %>
+              <li class="page-item disabled">
+                <span class="page-link bg-dark border-light text-muted">
+                  Sau <i class="fas fa-chevron-right"></i>
+                </span>
+              </li>
+            <% end %>
+          </ul>
+        </nav>
+
+        <!-- Quick Jump -->
+        <div class="row justify-content-center mt-4">
+          <div class="col-md-6 text-center">
+            <div class="pokemon-card bg-dark">
+              <div class="p-3">
+                <h6 class="text-light mb-3 fw-bold">
+                  <i class="fas fa-bolt me-2 text-warning"></i>Nhảy nhanh đến trang
+                </h6>
+                <div class="row g-2">
+                  <div class="col-8">
+                    <input type="number" 
+                           class="form-control bg-dark border-light text-light" 
+                           id="jumpToPage" 
+                           data-max-pages="<%= @total_pages %>"
+                           data-base-url="<%= all_pokemon_index_path %>"
+                           min="1" 
+                           max="<%= @total_pages %>" 
+                           value="<%= @page %>" 
+                           placeholder="Nhập số trang...">
+                  </div>
+                  <div class="col-4">
+                    <button type="button" class="btn btn-pokemon w-100" onclick="jumpToPage()">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Quick Stats -->
+      <div class="row mt-5">
+        <div class="col-md-4 mb-3">
+          <div class="pokemon-card text-center bg-dark">
+            <div class="p-4">
+              <i class="fas fa-list-ol fa-2x text-primary mb-3"></i>
+              <h4 class="text-light"><%= @total_count %></h4>
+              <p class="text-light-50 mb-0">Tổng số Pokémon</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="pokemon-card text-center bg-dark">
+            <div class="p-4">
+              <i class="fas fa-eye fa-2x text-success mb-3"></i>
+              <h4 class="text-light"><%= @pokemon_list.length %></h4>
+              <p class="text-light-50 mb-0">Hiển thị trang này</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="pokemon-card text-center bg-dark">
+            <div class="p-4">
+              <i class="fas fa-layer-group fa-2x text-warning mb-3"></i>
+              <h4 class="text-light"><%= @total_pages %></h4>
+              <p class="text-light-50 mb-0">Tổng số trang</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

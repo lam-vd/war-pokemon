@@ -17,6 +17,9 @@ services:
 
   web:
     build: .
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "3000:3000"
     volumes:
@@ -25,13 +28,17 @@ services:
       - DB_HOST=db
       - DB_PASSWORD=
       - RAILS_ENV=development
+      - BUNDLE_RETRY=3
+      - BUNDLE_TIMEOUT=30
     depends_on:
       - db
       - redis
     command: bash -c "
-      bundle install &&
+      echo 'Waiting for database...' &&
       sleep 30 &&
+      echo 'Setting up database...' &&
       rails db:create db:migrate &&
+      echo 'Starting Rails server...' &&
       rails server -b 0.0.0.0"
 
 volumes:

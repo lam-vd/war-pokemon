@@ -1,0 +1,265 @@
+<div class="container">
+  <!-- Hero Section -->
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="search-container text-center">
+        <h1 class="display-4 fw-bold text-white mb-4">
+          <i class="fas fa-bolt text-warning"></i> War Pokemon
+        </h1>
+        <p class="lead text-white mb-2">Khám phá thế giới Pokémon với giao diện đẹp và tính năng tương tác</p>
+        
+        <!-- Demo Notice -->
+        <div class="alert alert-info mb-4">
+          <strong>🎯 Demo Mode:</strong> Try searching for <strong>pikachu</strong>, <strong>charizard</strong>, <strong>bulbasaur</strong>, or <strong>mewtwo</strong>!
+        </div>
+        
+        <!-- Search Form -->
+        <%= form_with url: root_path, method: :get, local: true, class: "mb-4", onsubmit: "handleSearchSubmit(this)" do |form| %>
+          <div class="row g-2 justify-content-center">
+            <div class="col-md-8">
+              <%= form.text_field :search, 
+                    placeholder: "Try: pikachu, charizard, bulbasaur, mewtwo", 
+                    value: @search_query,
+                    class: "form-control form-control-lg",
+                    style: "border-radius: 25px; background: rgba(255,255,255,0.9);" %>
+            </div>
+            <div class="col-md-4">
+              <%= form.submit "Tìm kiếm", class: "btn btn-pokemon btn-lg w-100" %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Quick Action Buttons -->
+        <div class="row mt-4 g-3">
+          <div class="col-md-4">
+            <%= link_to random_pokemon_index_path, class: "btn btn-pokemon btn-lg w-100", 
+                style: "background: linear-gradient(135deg, #f59e0b, #dc2626);" do %>
+              <i class="fas fa-random me-2"></i>Pokémon ngẫu nhiên
+            <% end %>
+          </div>
+          <div class="col-md-4">
+            <%= link_to compare_pokemon_index_path, class: "btn btn-pokemon btn-lg w-100",
+                style: "background: linear-gradient(135deg, #06b6d4, #2563eb);" do %>
+              <i class="fas fa-balance-scale me-2"></i>So sánh Pokémon
+            <% end %>
+          </div>
+          <div class="col-md-4">
+            <%= link_to all_pokemon_index_path, class: "btn btn-pokemon btn-lg w-100",
+                style: "background: linear-gradient(135deg, #10b981, #059669);" do %>
+              <i class="fas fa-list me-2"></i>Tất cả Pokémon
+            <% end %>
+            </div>
+          <div class="col-md-4">
+            <button class="btn btn-pokemon btn-lg w-100" onclick="showPopularPokemon()"
+                    style="background: linear-gradient(135deg, #10b981, #059669);">
+              <i class="fas fa-star me-2"></i>Pokémon phổ biến
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results or Error -->
+  <% if @error %>
+    <div class="row justify-content-center mt-4">
+      <div class="col-lg-8">
+        <div class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <%= @error %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Pokemon Display -->
+  <% if @pokemon && !@pokemon[:error] %>
+    <div class="row justify-content-center mt-4">
+      <div class="col-lg-10">
+        <div class="pokemon-card p-4">
+          <div class="row align-items-center">
+            <!-- Pokemon Image -->
+            <div class="col-md-4 text-center">
+              <% if @pokemon[:sprites][:official_artwork] || @pokemon[:sprites][:front_default] %>
+                <%= image_tag (@pokemon[:sprites][:official_artwork] || @pokemon[:sprites][:front_default]), 
+                      alt: @pokemon[:name],
+                      class: "pokemon-image img-fluid" %>
+              <% else %>
+                <div class="bg-light rounded p-4">
+                  <i class="fas fa-image fa-3x text-muted"></i>
+                  <p class="mt-2 text-muted">No image available</p>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Pokemon Info -->
+            <div class="col-md-8">
+              <div class="d-flex align-items-center mb-3">
+                <h2 class="fw-bold mb-0 me-3"><%= @pokemon[:name] %></h2>
+                <span class="badge bg-secondary">#<%= @pokemon[:id] %></span>
+              </div>
+
+              <!-- Types -->
+              <div class="mb-3">
+                <% @pokemon[:types].each do |type| %>
+                  <span class="pokemon-type" style="background-color: <%= type[:color] %>">
+                    <%= type[:name] %>
+                  </span>
+                <% end %>
+              </div>
+
+              <!-- Basic Info -->
+              <div class="row mb-3">
+                <div class="col-sm-6">
+                  <strong>Chiều cao:</strong> <%= (@pokemon[:height] / 10.0).round(1) %> m
+                </div>
+                <div class="col-sm-6">
+                  <strong>Cân nặng:</strong> <%= (@pokemon[:weight] / 10.0).round(1) %> kg
+                </div>
+              </div>
+
+              <% if @pokemon[:description] %>
+                <div class="mb-3">
+                  <strong>Mô tả:</strong> <%= @pokemon[:description] %>
+                </div>
+              <% end %>
+
+              <!-- Action Buttons -->
+              <div class="d-flex gap-2 flex-wrap">
+                <%= link_to pokemon_path("#{@pokemon[:id]}"), class: "btn btn-outline-primary" do %>
+                  <i class="fas fa-eye me-1"></i>Xem chi tiết
+                <% end %>
+                
+                <button class="btn btn-outline-success" onclick="sharePokemons('<%= @pokemon[:name] %>', '<%= @pokemon[:id] %>')">
+                  <i class="fas fa-share me-1"></i>Chia sẻ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Preview -->
+          <% if @pokemon[:stats] && @pokemon[:stats].any? %>
+            <hr class="my-4">
+            <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Chỉ số cơ bản</h5>
+            <div class="row">
+              <% @pokemon[:stats].each_slice(3).each do |stat_group| %>
+                <% stat_group.each do |stat_name, stat_value| %>
+                  <% next if stat_name == 'Total' %>
+                  <div class="col-md-4 mb-2">
+                    <div class="d-flex justify-content-between">
+                      <span><%= stat_name %>:</span>
+                      <strong><%= stat_value %></strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill" style="width: <%= [stat_value.to_f / 200 * 100, 100].min %>%"></div>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Features Section (when no search) -->
+  <% if !@search_query || (@pokemon.nil? && @error.nil?) %>
+    <div class="row mt-5">
+      <div class="col-12">
+        <h3 class="text-center text-white mb-4">Tính năng chính</h3>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-0 h-100 text-center p-4">
+          <div class="card-body">
+            <i class="fas fa-search fa-3x text-primary mb-3"></i>
+            <h5 class="card-title">Tìm kiếm Pokémon</h5>
+            <p class="card-text">Nhập tên hoặc ID để tìm kiếm và hiển thị thông tin chi tiết về Pokémon</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-0 h-100 text-center p-4">
+          <div class="card-body">
+            <i class="fas fa-random fa-3x text-warning mb-3"></i>
+            <h5 class="card-title">Pokémon ngẫu nhiên</h5>
+            <p class="card-text">Khám phá các Pokémon mới một cách ngẫu nhiên từ cơ sở dữ liệu khổng lồ</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-0 h-100 text-center p-4">
+          <div class="card-body">
+            <i class="fas fa-balance-scale fa-3x text-info mb-3"></i>
+            <h5 class="card-title">So sánh</h5>
+            <p class="card-text">So sánh chỉ số và thông tin giữa hai Pokémon khác nhau</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popular Pokemon Suggestions -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <h5 class="text-center text-white mb-3">Pokémon phổ biến</h5>
+        <div class="text-center">
+          <% popular = ['pikachu', 'charizard', 'blastoise', 'venusaur', 'mewtwo', 'mew', 'lucario', 'garchomp'] %>
+          <% popular.each do |pokemon| %>
+            <%= link_to "?search=#{pokemon}", class: "btn btn-outline-light btn-sm me-2 mb-2" do %>
+              <%= pokemon.titleize %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- JavaScript for enhanced functionality -->
+<script>
+  function handleSearchSubmit(form) {
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tìm...';
+    submitBtn.disabled = true;
+    
+    return true; // Allow form submission
+  }
+
+  function sharePokemons(name, id) {
+    if (navigator.share) {
+      navigator.share({
+        title: `War Pokemon - ${name}`,
+        text: `Check out ${name} on War Pokemon!`,
+        url: window.location.origin + `/pokemon/${id}`
+      });
+    } else {
+      // Fallback: copy to clipboard
+      const url = window.location.origin + `/pokemon/${id}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Link đã được copy vào clipboard!');
+      });
+    }
+  }
+
+  function showPopularPokemon() {
+    const popular = ['pikachu', 'charizard', 'blastoise', 'venusaur', 'mewtwo', 'alakazam', 'machamp', 'gengar'];
+    const randomPokemon = popular[Math.floor(Math.random() * popular.length)];
+    
+    // Update search field and submit
+    const searchField = document.querySelector('input[name="search"]');
+    const form = searchField.closest('form');
+    
+    searchField.value = randomPokemon;
+    form.submit();
+  }
+
+  // Auto-focus search field on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchField = document.querySelector('input[name="search"]');
+    if (searchField && !searchField.value) {
+      searchField.focus();
+    }
+  });
+</script>

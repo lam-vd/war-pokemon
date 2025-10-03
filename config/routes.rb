@@ -9,8 +9,6 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
-<<<<<<< Updated upstream
-=======
   # Pokemon App Routes
   root 'pokemon#index'
   
@@ -26,7 +24,6 @@ Rails.application.routes.draw do
       get 'types/:type', to: 'pokemon#type_info', as: :type
     end
   end
-  
   # Pokemon Battle System
   resources :battles, only: [:new, :create] do
     collection do
@@ -34,7 +31,6 @@ Rails.application.routes.draw do
     end
   end
 
->>>>>>> Stashed changes
   # Defines the root path route ("/")
   # root "posts#index"
 end
